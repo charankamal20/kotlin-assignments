@@ -1,27 +1,31 @@
-📦 Assignment: Intelligent Parcel Routing System
-Aims
-To implement and evaluate various data structures (queues, priority queues, hash maps, graphs).
+# 📦 Intelligent Parcel Routing System
 
-To explore algorithm design, simulation, and performance benchmarking.
+## 🎯 Aims
 
-To apply real-world problem-solving skills in the context of logistics and routing.
+- Implement and evaluate various data structures: queues, priority queues, hash maps, graphs.
+- Explore algorithm design, simulation, and performance benchmarking.
+- Apply real-world problem-solving skills in the context of logistics and routing.
 
-Real-World Scenario:
-Imagine a national postal service that manages thousands of parcels per day. Each parcel needs to be routed from a source warehouse to a destination through a network of sorting centers (nodes). Each sorting center has limited processing capacity and implements different queueing disciplines to manage the parcels waiting to be forwarded. The system must support:
+---
 
-FIFO, LIFO, and Priority queue routing
+## 🌍 Real-World Scenario
 
-Dynamically routing parcels based on destination proximity, urgency, or size
+Imagine a national postal service that manages thousands of parcels per day. Each parcel needs to be routed from a **source warehouse** to a **destination** through a **network of sorting centers** (nodes). Each sorting center has limited processing capacity and implements different queueing disciplines to manage the parcels waiting to be forwarded.
 
-Logging and statistics collection (wait times, hops, re-routing due to congestion)
+The system must support:
 
-Problem Breakdown
-Phase 1: Core Data Structures (Checkpoint 1)
-Implement a polymorphic ParcelQueue<T> interface:
+- FIFO, LIFO, and Priority queue routing
+- Dynamically routing parcels based on destination proximity, urgency, or size
+- Logging and statistics collection (wait times, hops, re-routing due to congestion)
 
-kotlin
-Copy
-Edit
+---
+
+## ✅ Checkpoint 1: Core Data Structures
+
+### 🔧 API Requirements
+
+#### `ParcelQueue<T>` Interface
+```kotlin
 interface ParcelQueue<T> {
     fun enqueue(item: T)
     fun peek(): T?
@@ -29,75 +33,198 @@ interface ParcelQueue<T> {
     fun isEmpty(): Boolean
     fun size(): Int
 }
-Implement the following classes:
+```
 
-FifoParcelQueue<T>
+#### Required Implementations
 
-LifoParcelQueue<T>
+*   `FifoParcelQueue<T> : ParcelQueue<T>`
+    
+*   `LifoParcelQueue<T> : ParcelQueue<T>`
+    
+*   `PriorityParcelQueue<T> : ParcelQueue<T>`
+    
+    *   Requires `T : Comparable<T>`
+        
 
-PriorityParcelQueue<T> using a natural ordering (e.g., smaller delivery time = higher priority)
+#### Test Types
 
-➡ Checkpoint Deliverables:
+*   `Int`
+    
+*   `String`
+    
+*   `Parcel` (custom class shown below)
+    
 
-Interfaces and three implementations
+#### Sample Parcel Class
 
-Unit tests for each using Int, String, and a custom Parcel class
+```kotlin
 
-Phase 2: Routing Network (Checkpoint 2)
-Model:
-A SortingCenter class that implements:
+data class Parcel(     
+    val id: String,     
+    val deliveryDeadline: Int,     
+    val size: Int ) : Comparable<Parcel> {     
+    override fun compareTo(other: Parcel): Int {         
+        return this.deliveryDeadline.compareTo(other.deliveryDeadline)     
+    } 
+}
 
-acceptParcel(parcel: Parcel)
+```
+* * *
 
-forwardParcel()
+### ✅ Evaluation Criteria
 
-A Router class that connects centers and determines the next hop
+Criteria
 
-Use graphs (adjacency lists) to model the network and allow route lookups.
+ - Correct interface implementation
 
-➡ Checkpoint Deliverables:
+ - FIFO, LIFO, Priority logic
 
-SortingCenter with pluggable queue discipline
+ - Proper use of generics
 
-Router that supports Dijkstra’s algorithm for shortest path routing
+* * *
 
-A method to simulate parcel traversal from source to destination
+✅ Checkpoint 2: Routing Network
+-------------------------------
 
-Phase 3: Simulation and Monitoring (Checkpoint 3)
-Enhance the system with:
+### 🔧 API Requirements
 
-A Clock class for tracking virtual time
+#### `SortingCenter` Class
 
-Metrics in SortingCenter: average wait time, max queue length, parcels processed
+```kotlin
 
-Parcel priority based on:
+class SortingCenter(     
+    val name: String,     
+    private val queue: ParcelQueue<Parcel> ) {     
+        fun acceptParcel(parcel: Parcel)     
+        fun forwardParcel(router: Router)     
+        fun getQueueSize(): Int     
+        fun getProcessedCount(): Int 
+    }
+)
 
-Delivery deadline (time-sensitive)
+```
+#### `Router` Class
 
-Size (smaller = prioritized for faster routes)
+```kotlin
+class Router {     
+    fun addConnection(from: SortingCenter, to: SortingCenter, cost: Int)     
+    fun getShortestPath(from: SortingCenter, to: SortingCenter): List<SortingCenter> 
+}
+```
 
-➡ Checkpoint Deliverables:
+*   Internal graph: adjacency list
+    
+*   Routing: Dijkstra’s algorithm
+    
 
-Simulation runner that spawns parcels at various centers
+* * *
 
-Report at end showing:
+### ✅ Evaluation Criteria
 
-Total parcels delivered
+Criteria
 
-Average time in system
+ - Graph using adjacency list
 
-Congested nodes
+ - Correct Dijkstra routing
 
-Phase 4: Extensions (Optional)
-Add probabilistic routing (based on congestion)
+ - Pluggable queue discipline in center
 
-Add a MeasurableParcelQueue to track dynamic queue lengths over time
+ - Working parcel forwarding logic
 
-Allow dynamic rerouting when a node’s queue exceeds a threshold
+* * *
 
-📋 Evaluation Criteria
+✅ Checkpoint 3: Simulation and Monitoring
+-----------------------------------------
 
-Checkpoint	Criteria
-1 - Data Structures	Correct interface usage, test coverage, discipline behavior
-2 - Network Routing	Working node-to-node parcel forwarding, proper routing via graph
-3 - Simulation	Accurate simulation logic, metrics, clear reports
+### 🔧 API Requirements
+
+#### `Clock` Object
+
+```kotlin
+object Clock {
+    var time: Int = 0
+    fun tick(): Int {
+        time += 1
+        return time
+    }
+}
+```
+
+#### Updated Parcel
+
+```kotlin
+data class Parcel(
+    val id: String,
+    val deliveryDeadline: Int,
+    val size: Int,
+    val source: String,
+    val destination: String,
+    var entryTime: Int = 0,
+    var hops: Int = 0
+)
+
+```
+
+#### `SimulationRunner`
+
+```kotlin
+class SimulationRunner(
+    val centers: List<SortingCenter>,
+    val router: Router
+) {
+    fun spawnParcel(parcel: Parcel, atCenter: String)
+    fun stepSimulation()
+    fun runUntilComplete()
+    fun report(): SimulationReport
+}
+```
+
+#### `SimulationReport`
+
+```kotlin
+data class SimulationReport(
+    val totalDelivered: Int,
+    val avgTimeInSystem: Double,
+    val congestedCenters: List<String>
+)
+```
+
+* * *
+
+### ✅ Evaluation Criteria
+
+Criteria
+
+ - Virtual Clock implementation
+
+ - Accurate simulation & tracking
+
+ - Priority and size-based routing logic
+
+ - Correct stats and reporting
+
+* * *
+
+🧠 Phase 4 (Optional Bonus): Extensions
+---------------------------------------
+
+### 🔄 Ideas
+
+*   **Probabilistic Routing**: Choose next hop based on congestion probabilities
+    
+*   **Dynamic Rerouting**: When a node’s queue > threshold, recalculate route
+    
+*   **MeasurableParcelQueue**: Track queue sizes over time
+    
+
+* * *
+
+### ✅ Bonus Evaluation Criteria
+
+Criteria
+
+ - Creative features (1–2 extensions)
+
+ - Clean, modular design
+
+* * *
